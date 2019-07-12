@@ -65,7 +65,7 @@ public class ProducerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Send string
+        // Send string 发送string类型的消息
         SendResult sendResult = rocketMQTemplate.syncSend(springTopic, "Hello, World!");
         System.out.printf("syncSend1 to topic %s sendResult=%s %n", springTopic, sendResult);
 
@@ -79,10 +79,12 @@ public class ProducerApplication implements CommandLineRunner {
 
         // Send user-defined object
         rocketMQTemplate.asyncSend(orderPaidTopic, new OrderPaidEvent("T_001", new BigDecimal("88.00")), new SendCallback() {
+            @Override
             public void onSuccess(SendResult var1) {
                 System.out.printf("async onSucess SendResult=%s %n", var1);
             }
 
+            @Override
             public void onException(Throwable var1) {
                 System.out.printf("async onException Throwable=%s %n", var1);
             }

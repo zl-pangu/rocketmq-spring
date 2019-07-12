@@ -63,7 +63,7 @@ public class ProducerACLApplication implements CommandLineRunner {
         sendResult = rocketMQTemplate.syncSend(springTopic, MessageBuilder.withPayload("Hello, World! I'm from spring message & ACL Msg").build());
         System.out.printf("syncSend2 to topic %s sendResult=%s %n", springTopic, sendResult);
 
-         //Send transactional messages
+        //Send transactional messages
         testTransaction();
     }
 
@@ -74,11 +74,11 @@ public class ProducerACLApplication implements CommandLineRunner {
             try {
 
                 Message msg = MessageBuilder.withPayload("Hello RocketMQ " + i).
-                    setHeader(RocketMQHeaders.TRANSACTION_ID, "KEY_" + i).build();
+                        setHeader(RocketMQHeaders.TRANSACTION_ID, "KEY_" + i).build();
                 SendResult sendResult = rocketMQTemplate.sendMessageInTransaction(TX_PGROUP_NAME,
-                    springTransTopic + ":" + tags[i % tags.length], msg, null);
+                        springTransTopic + ":" + tags[i % tags.length], msg, null);
                 System.out.printf("------ send Transactional msg body = %s , sendResult=%s %n",
-                    msg.getPayload(), sendResult.getSendStatus());
+                        msg.getPayload(), sendResult.getSendStatus());
 
                 Thread.sleep(10);
             } catch (Exception e) {
@@ -88,10 +88,10 @@ public class ProducerACLApplication implements CommandLineRunner {
     }
 
     @RocketMQTransactionListener(
-        txProducerGroup = TX_PGROUP_NAME,
-        accessKey = "AK", // if not setting, it will read by `rocketmq.producer.access-key` key
-        secretKey = "SK"  // if not setting, it will read by `rocketmq.producer.secret-key` key
-        )
+            txProducerGroup = TX_PGROUP_NAME,
+            accessKey = "AK", // if not setting, it will read by `rocketmq.producer.access-key` key
+            secretKey = "SK"  // if not setting, it will read by `rocketmq.producer.secret-key` key
+    )
     class TransactionListenerImpl implements RocketMQLocalTransactionListener {
         private AtomicInteger transactionIndex = new AtomicInteger(0);
 
@@ -99,9 +99,9 @@ public class ProducerACLApplication implements CommandLineRunner {
 
         @Override
         public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
-            String transId = (String)msg.getHeaders().get(RocketMQHeaders.TRANSACTION_ID);
+            String transId = (String) msg.getHeaders().get(RocketMQHeaders.TRANSACTION_ID);
             System.out.printf("#### executeLocalTransaction is executed, msgTransactionId=%s %n",
-                transId);
+                    transId);
             int value = transactionIndex.getAndIncrement();
             int status = value % 3;
             localTrans.put(transId, status);
@@ -125,7 +125,7 @@ public class ProducerACLApplication implements CommandLineRunner {
 
         @Override
         public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
-            String transId = (String)msg.getHeaders().get(RocketMQHeaders.TRANSACTION_ID);
+            String transId = (String) msg.getHeaders().get(RocketMQHeaders.TRANSACTION_ID);
             RocketMQLocalTransactionState retState = RocketMQLocalTransactionState.COMMIT;
             Integer status = localTrans.get(transId);
             if (null != status) {
@@ -139,11 +139,12 @@ public class ProducerACLApplication implements CommandLineRunner {
                     case 2:
                         retState = RocketMQLocalTransactionState.COMMIT;
                         break;
+                    default:
                 }
             }
             System.out.printf("------ !!! checkLocalTransaction is executed once," +
-                    " msgTransactionId=%s, TransactionState=%s status=%s %n",
-                transId, retState, status);
+                            " msgTransactionId=%s, TransactionState=%s status=%s %n",
+                    transId, retState, status);
             return retState;
         }
     }
